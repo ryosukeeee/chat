@@ -1,15 +1,34 @@
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    //connection
+    var con;
     // PeerJS object
     var peer = new Peer({ key: '7d8b3b19-79b9-4caa-87f9-daf98dcf73c4', debug: 3});
+    //UserAgent
+    var ua = 'pc';
+    
     peer.on('open', function(){
-      $('#my-id').text(peer.id+",pc");
+      $('#my-id').text(peer.id);
+       console.log(peer);
+       console.log(peer.connect);
     });
-    console.log(peer);
     // Receiving a call
     peer.on('call', function(call){
       // Answer the call automatically (instead of prompting user) for demo purposes
       call.answer(window.localStream);
       step3(call);
+    });
+    //Connectionがきた時
+    peer.on('connection',function(connection){
+        con = connection;
+        //Connectionが確立したら実行
+        con.on('open',function(){
+            //データの送信
+            con.send(ua);
+        });
+       //データを受信した時 
+        con.on('data',function(data){
+            console.log('receive',data);
+        });
     });
     peer.on('error', function(err){
       alert(err.message);
@@ -20,12 +39,20 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
     $(function(){
       $('#make-call').click(function(){
         // Initiate a call
-        var id = $('#callto-id').val();
-        var call_id = String(id).split(",");
-        var call;
-        if(call_id[1] =="pc"){
-             call = peer.call(call_id[0],window.localStream);
-        };
+        var  call = peer.call($('#callto-id').val(),window.localStream);
+        //コネクションの要求
+        con = peer.connect($('#callto-id').val());
+        //コネクションが確立した時
+        con.on('open',function(){
+            //データの送信
+            con.send(ua);
+        });
+        //データを受信した時
+        con.on('data',function(data){
+            console.log('received',data);
+        });
+
+        
         step3(call);
       });
       $('#end-call').click(function(){
@@ -64,7 +91,7 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
       });
       // UI stuff
       window.existingCall = call;
-      $('#their-id').text(call.peer);
+    //  $('#their-id').text(call.peer);
       call.on('close', step2);
       $('#step1, #step2').hide();
       $('#step3').show();

@@ -1,7 +1,9 @@
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    // PeerJS object
+    //connection
     var con;
+    // PeerJS object
     var peer = new Peer({ key: '7d8b3b19-79b9-4caa-87f9-daf98dcf73c4', debug: 3});
+    //UserAgent
     var ua = 'pc';
     
     peer.on('open', function(){
@@ -15,18 +17,19 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
       call.answer(window.localStream);
       step3(call);
     });
+    //Connectionがきた時
     peer.on('connection',function(connection){
         con = connection;
+        //Connectionが確立したら実行
         con.on('open',function(){
-            var message = 'test';
+            //データの送信
             con.send(ua);
         });
-        
+       //データを受信した時 
         con.on('data',function(data){
-            console.log('receive',data);
+            console.log('received1!!!!',data);
         });
     });
-    //相手からデータ通信接続要求がきた時
     peer.on('error', function(err){
       alert(err.message);
       // Return to step 2 if error occurs
@@ -37,18 +40,18 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
       $('#make-call').click(function(){
         // Initiate a call
         var  call = peer.call($('#callto-id').val(),window.localStream);
+        //コネクションの要求
         con = peer.connect($('#callto-id').val());
-        
-        con.on('open',function(){
+        //コネクションが確立したら
+       con.on('open',function(){
+            //データの送信
             con.send(ua);
         });
-        
+        //データを受信した時
         con.on('data',function(data){
-            console.log('received',data);
+            console.log('received2!!!!',data);
         });
-
-        
-        step3(call);
+          step3(call);
       });
       $('#end-call').click(function(){
         window.existingCall.$close();
